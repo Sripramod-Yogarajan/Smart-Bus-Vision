@@ -1,0 +1,7 @@
+path: /content/drive/MyDrive/Smart Bus Vision/data
+train: train/images
+val: val/images
+
+names:
+  0: route_number
+  1: destination

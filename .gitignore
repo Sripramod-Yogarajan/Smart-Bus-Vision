@@ -1,0 +1,59 @@
+# ==============================
+# Python / Virtual Environment
+# ==============================
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# ==============================
+# VS Code / IDE
+# ==============================
+.vscode/
+.idea/
+
+# ==============================
+# OS Files
+# ==============================
+.DS_Store
+Thumbs.db
+
+# ==============================
+# Ultralytics / YOLO Outputs
+# ==============================
+runs/
+wandb/
+
+# ==============================
+# Cropped / Generated Outputs
+# ==============================
+cropped_outputs/
+*.jpg
+*.png
+
+# ==============================
+# Large Media Files
+# ==============================
+data/videos/
+data/train/
+data/val/
+data/test/
+
+# ==============================
+# Notebooks Checkpoints
+# ==============================
+.ipynb_checkpoints/
+
+# ==============================
+# Logs
+# ==============================
+*.log
+
+models/*.pt
+models/*.pth
+models/*.onnx
