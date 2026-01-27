@@ -36,6 +36,10 @@ cropped_outputs/
 *.jpg
 *.png
 
+temp_crops/
+*.jpg
+*.png
+
 # ==============================
 # Large Media Files
 # ==============================
@@ -49,11 +53,9 @@ data/test/
 # ==============================
 .ipynb_checkpoints/
 
-# ==============================
-# Logs
-# ==============================
-*.log
+
 
 models/*.pt
 models/*.pth
 models/*.onnx
+
