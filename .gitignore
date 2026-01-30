@@ -55,7 +55,7 @@ data/test/
 
 
 
-models/*.pt
+
 models/*.pth
 models/*.onnx
 
