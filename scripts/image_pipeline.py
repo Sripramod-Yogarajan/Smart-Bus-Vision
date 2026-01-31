@@ -3,12 +3,11 @@ import os
 from detect_and_crop import BusDetector
 from ocr_pipeline import run_ocr_on_image
 
-# ================= CONFIG =================
 MODEL_PATH = "../models/best.pt"
 IMAGE_PATH = "../data/train/images/bus_video5_294.jpg"
 TEMP_DIR = "../temp_crops"
 CONF_THRESH = 0.4
-# ========================================
+
 
 os.makedirs(TEMP_DIR, exist_ok=True)
 
@@ -27,15 +26,14 @@ crops = detector.crop_boxes(img, results, TEMP_DIR)
 
 final_output = []
 
-# ================= CORE LOGIC =================
-# For each BUS FRONT → find route + destination inside it
+
 for i, bus in enumerate(crops["bus_front"]):
     bus_x1, bus_y1, bus_x2, bus_y2 = bus["bbox"]
 
     bus_routes = []
     bus_dests = []
 
-    # Assign route/dest INSIDE this bus_front
+    
     for r in crops["route_number"]:
         x1, y1, x2, y2 = r["bbox"]
         if bus_x1 <= x1 <= bus_x2:
@@ -61,7 +59,7 @@ for i, bus in enumerate(crops["bus_front"]):
         "destination": dest_text
     })
 
-# ================= FINAL OUTPUT =================
+
 print("\n================ FINAL BUS OUTPUT ================\n")
 for bus in final_output:
     print(f"BUS {bus['bus_id']}")
