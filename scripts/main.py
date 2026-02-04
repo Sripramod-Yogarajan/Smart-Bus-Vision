@@ -1,10 +1,16 @@
 import cv2
 import os
 import time
+import threading
 from collections import defaultdict, deque
-from ultralytics import YOLO
-from ocr_pipeline import run_ocr_on_image
+from queue import Queue
 from datetime import datetime
+
+from ultralytics import YOLO
+import pyttsx3
+
+from ocr_pipeline import run_ocr_on_image
+
 
 # ================= CONFIG =================
 MODEL_PATH = "../models/best.pt"
@@ -17,26 +23,39 @@ TEMPORAL_WINDOW = 7
 STABLE_THRESHOLD = 4
 
 LOG_FILE = "../bus_announcements.log"
+BUS_STALE_TIME = 10
 # =========================================
 
 os.makedirs(TEMP_DIR, exist_ok=True)
 
-print("[INFO] Loading model...")
-model = YOLO(MODEL_PATH)
-class_names = model.names
+# ================= TTS SETUP =================
+tts_engine = pyttsx3.init()
+tts_engine.setProperty("rate", 130)
+tts_engine.setProperty("volume", 1.0)
 
-# Clear old log file
-with open(LOG_FILE, "w") as f:
-    f.write("=== BUS ANNOUNCEMENT LOG ===\n\n")
+announcement_queue = Queue()
+# ============================================
 
-# Per-bus memory (key = track_id from bus_front)
-bus_memory = defaultdict(lambda: {
-    "route_hist": deque(maxlen=TEMPORAL_WINDOW),
-    "dest_hist": deque(maxlen=TEMPORAL_WINDOW),
-    "announced": False,
-    "last_seen": time.time()
-})
 
+def tts_worker():
+    """
+    Dedicated TTS worker thread.
+    Ensures FIFO announcements with no overlap.
+    """
+    while True:
+        text = announcement_queue.get()
+        if text is None:
+            break
+        tts_engine.say(text)
+        tts_engine.runAndWait()
+        announcement_queue.task_done()
+
+
+tts_thread = threading.Thread(target=tts_worker, daemon=True)
+tts_thread.start()
+
+
+# ================= HELPERS =================
 def majority_vote(seq):
     if not seq:
         return None, 0
@@ -50,11 +69,34 @@ def majority_vote(seq):
     best = max(counts, key=counts.get)
     return best, counts[best]
 
+
+def build_announcement(route, dest):
+    return f"Attention please. Bus number {route} to {dest} has arrived."
+
+
 def log_announcement(bus_id, route, dest):
     ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     line = f"[{ts}] BUS {bus_id} | Route {route} -> {dest}\n"
     with open(LOG_FILE, "a") as f:
         f.write(line)
+# ===========================================
+
+
+print("[INFO] Loading YOLO model...")
+model = YOLO(MODEL_PATH)
+class_names = model.names
+
+# Clear old logs
+with open(LOG_FILE, "w") as f:
+    f.write("=== BUS ANNOUNCEMENT LOG ===\n\n")
+
+# Per-bus temporal memory
+bus_memory = defaultdict(lambda: {
+    "route_hist": deque(maxlen=TEMPORAL_WINDOW),
+    "dest_hist": deque(maxlen=TEMPORAL_WINDOW),
+    "announced": False,
+    "last_seen": time.time()
+})
 
 print("[INFO] Starting video pipeline...")
 
@@ -70,11 +112,11 @@ for r in results:
     if r.boxes is None:
         continue
 
-    # Separate detections
     bus_fronts = []
     route_boxes = []
     dest_boxes = []
 
+    # Separate detections
     for box in r.boxes:
         cls_id = int(box.cls[0])
         cls_name = class_names[cls_id]
@@ -86,7 +128,6 @@ for r in results:
         elif cls_name == "destination":
             dest_boxes.append(box)
 
-    # Process each bus_front
     for bus_box in bus_fronts:
         if bus_box.id is None:
             continue
@@ -99,14 +140,14 @@ for r in results:
         matched_route = None
         matched_dest = None
 
-        # Find route inside bus_front
+        # Match route box inside bus front
         for rbox in route_boxes:
             x1, y1, x2, y2 = rbox.xyxy[0].cpu().numpy().astype(int)
             if bx1 <= x1 <= bx2:
                 matched_route = rbox
                 break
 
-        # Find destination inside bus_front
+        # Match destination box inside bus front
         for dbox in dest_boxes:
             x1, y1, x2, y2 = dbox.xyxy[0].cpu().numpy().astype(int)
             if bx1 <= x1 <= bx2:
@@ -140,27 +181,36 @@ for r in results:
         print(f"[BUS {bus_id}] ROUTE={route_final} ({route_count}) "
               f"DEST={dest_final} ({dest_count})")
 
-        # Announce ONCE + LOG
+        # ================= ANNOUNCEMENT TRIGGER =================
         if (route_count >= STABLE_THRESHOLD and
             dest_count >= STABLE_THRESHOLD and
             not bus_memory[bus_id]["announced"]):
 
+            announcement_text = build_announcement(route_final, dest_final)
+
             print("\n>>> NEW BUS ARRIVED <<<")
-            print(f"ANNOUNCE: Route {route_final} to {dest_final}")
+            print(f"SPEAKING: {announcement_text}")
             print("========================================\n")
 
+            announcement_queue.put(announcement_text)
             log_announcement(bus_id, route_final, dest_final)
-            bus_memory[bus_id]["announced"] = True
 
-    # Cleanup old buses
+            bus_memory[bus_id]["announced"] = True
+        # ========================================================
+
+    # Cleanup stale buses
     now = time.time()
     stale_ids = [
         bid for bid, data in bus_memory.items()
-        if now - data["last_seen"] > 10
+        if now - data["last_seen"] > BUS_STALE_TIME
     ]
     for bid in stale_ids:
         print(f"[INFO] Bus {bid} left scene")
         del bus_memory[bid]
 
-print(f"\n[INFO] Video finished.")
+print("\n[INFO] Video finished.")
 print(f"[INFO] Announcements saved to: {LOG_FILE}")
+
+# Graceful TTS shutdown
+announcement_queue.put(None)
+tts_thread.join()
