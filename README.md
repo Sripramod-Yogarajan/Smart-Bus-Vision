@@ -194,25 +194,6 @@ Smart-Bus-Vision/
 - **Queue System**: FIFO queue prevents overlapping announcements
 - **Logging**: All announcements logged with timestamps
 
-## 🎓 Team
-
-This project was developed as part of CS6611 – Creative and Innovative Project by:
-
-- **Harsanth R** 
-- **Pradeep Balaji T** 
-- **Sachin K** 
-- **Sripramod Y** 
-
-**Institution**: College of Engineering, Guindy, Anna University, Chennai
-
-**Supervisors**:
-- Dr. P. Uma Maheswari (Professor)
-- Dr. S. Sudha (Professor)
-
-**Guide**: Dr. P. Geetha (Professor)
-
-**Head of Department**: Dr. V. Mary Anita Rajam (Professor)
-
 ## 📊 Performance Metrics
 
 The system is evaluated based on:
