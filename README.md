@@ -244,11 +244,11 @@ This project is developed as part of academic coursework. Please refer to the pr
 
 ## 🤝 Contributing
 
-This is an academic project. For questions or suggestions, please contact the team members or supervisors.
+This is an academic project. For questions or suggestions, please contact us.
 
 ## 📧 Contact
 
-For inquiries about this project, please reach out to the team members through the institution.
+For inquiries about this project, please reach out to the team members.
 
 ---
 
