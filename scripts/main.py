@@ -15,7 +15,7 @@ from ocr_pipeline import run_ocr_on_image
 
 # ================= CONFIG =================
 MODEL_PATH = "../models/best.pt"
-VIDEO_SOURCE = "../data/videos/test_video.mp4"
+VIDEO_SOURCE = "../data/videos/test_video.MOV"
 
 CONF_THRESH = 0.4
 TEMP_DIR = "../temp_crops"

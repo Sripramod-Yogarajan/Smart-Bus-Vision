@@ -125,4 +125,4 @@ for bus in final_output:
 
     # Speak corrected output
     if bus["route"] and bus["dest_corrected"]:
-        speak(f"Bus number {bus['route']} to {bus['dest_corrected']}")
+        speak(f"Bus number {bus['route']} to {bus['dest_corrected']} has arrived")
