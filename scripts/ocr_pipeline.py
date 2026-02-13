@@ -1,4 +1,3 @@
-# ocr_pipeline.py
 import cv2
 import easyocr
 

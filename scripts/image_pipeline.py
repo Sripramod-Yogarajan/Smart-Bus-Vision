@@ -6,8 +6,6 @@ from rapidfuzz import process, fuzz
 from detect_and_crop import BusDetector
 from ocr_pipeline import run_ocr_on_image
 
-
-# ================= CONFIG =================
 MODEL_PATH = "../models/best.pt"
 IMAGE_PATH = "../data/test/bus_video6_321.jpg"
 TEMP_DIR = "../temp_crops"
@@ -15,24 +13,19 @@ CONF_THRESH = 0.4
 
 ROUTES_FILE = "../data/routes.txt"
 LEVENSHTEIN_THRESHOLD = 40
-# =========================================
+
 
 os.makedirs(TEMP_DIR, exist_ok=True)
 
 
-# ================= LOAD DESTINATIONS =================
 with open(ROUTES_FILE, "r") as f:
     VALID_DESTINATIONS = [line.strip() for line in f if line.strip()]
 
 print(f"[INFO] Loaded {len(VALID_DESTINATIONS)} valid destinations")
-# ====================================================
 
-
-# ================= TTS SETUP =================
 tts_engine = pyttsx3.init()
 tts_engine.setProperty("rate", 125)
 tts_engine.setProperty("volume", 1.0)
-# ============================================
 
 
 def correct_destination_levenshtein(raw_text):
@@ -123,6 +116,6 @@ for bus in final_output:
     print(f"LEVENSHTEIN SCORE  : {bus['score']}")
     print("--------------------------------------------------")
 
-    # Speak corrected output
+    
     if bus["route"] and bus["dest_corrected"]:
         speak(f"Bus number {bus['route']} to {bus['dest_corrected']} has arrived")

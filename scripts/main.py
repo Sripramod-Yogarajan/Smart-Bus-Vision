@@ -12,8 +12,6 @@ from rapidfuzz import process, fuzz
 
 from ocr_pipeline import run_ocr_on_image
 
-
-# ================= CONFIG =================
 MODEL_PATH = "../models/best.pt"
 VIDEO_SOURCE = "../data/videos/test_video.MOV"
 
@@ -27,20 +25,18 @@ BUS_STALE_TIME = 10
 LOG_FILE = "../bus_announcements.log"
 
 ROUTES_FILE = "../data/routes.txt"
-LEVENSHTEIN_THRESHOLD = 80   # similarity %
-# =========================================
+LEVENSHTEIN_THRESHOLD = 80   
+
 
 os.makedirs(TEMP_DIR, exist_ok=True)
 
-
-# ================= LOAD ROUTES =================
 with open(ROUTES_FILE, "r") as f:
     VALID_DESTINATIONS = [line.strip() for line in f if line.strip()]
 
 print(f"[INFO] Loaded {len(VALID_DESTINATIONS)} valid destinations")
 
 
-# ================= TTS SETUP =================
+
 tts_engine = pyttsx3.init()
 tts_engine.setProperty("rate", 140)
 tts_engine.setProperty("volume", 1.0)
@@ -60,10 +56,7 @@ def tts_worker():
 
 tts_thread = threading.Thread(target=tts_worker, daemon=True)
 tts_thread.start()
-# ============================================
 
-
-# ================= HELPERS =================
 def majority_vote(seq):
     if not seq:
         return None, 0
@@ -92,7 +85,7 @@ def correct_destination_levenshtein(raw_text):
 
     if score >= LEVENSHTEIN_THRESHOLD:
         return match
-    return raw_text   # fallback to raw OCR
+    return raw_text   
 
 
 def build_announcement(route, dest):
@@ -103,7 +96,7 @@ def log_announcement(bus_id, route, dest):
     ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with open(LOG_FILE, "a") as f:
         f.write(f"[{ts}] BUS {bus_id} | Route {route} -> {dest}\n")
-# ===========================================
+
 
 
 print("[INFO] Loading YOLO model...")
